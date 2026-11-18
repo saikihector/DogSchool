@@ -3,7 +3,7 @@
     font-style: normal;
     font-weight: 700,600,500,400,300;
     font-display: swap;
-    src: url('/src/fonts/files/PlusJakartaSans-Variable-latin.woff') format('woff');
+    src: url('../fonts/files/PlusJakartaSans-Variable-latin.woff') format('woff');
 }
 
 * {
