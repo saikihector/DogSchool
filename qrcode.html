@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DogSchool | Nossa Equipe</title>
+    <meta name="description" content="Conheça a equipe do DogSchool e acesse o GitHub de cada integrante.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            text-decoration: none;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--color-text);
+        }
+
+        :root {
+            --color-primary: #3A66FF;
+            --color-secondary: #7A33CC;
+            --color-background: #F5F7FC;
+            --color-surface: #FFFFFF;
+            --color-text: #18233D;
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            background: var(--color-background);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Formas decorativas ao fundo */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        body::before {
+            width: clamp(260px, 40vw, 520px);
+            aspect-ratio: 1;
+            top: -12%;
+            right: -10%;
+            background: radial-gradient(circle, rgba(58, 102, 255, 0.18), transparent 70%);
+        }
+
+        body::after {
+            width: clamp(260px, 40vw, 520px);
+            aspect-ratio: 1;
+            bottom: -12%;
+            left: -10%;
+            background: radial-gradient(circle, rgba(122, 51, 204, 0.16), transparent 70%);
+        }
+
+        main {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 3.5rem 1.2rem 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ---------- Topo ---------- */
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+
+        .title-primary {
+            color: var(--color-primary);
+        }
+
+        .title-secondary {
+            background: linear-gradient(to right, var(--color-text), var(--color-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            margin-top: 0.8rem;
+            font-size: 1.15rem;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .description {
+            margin-top: 0.4rem;
+            font-size: 0.95rem;
+            text-align: center;
+            opacity: 0.75;
+        }
+
+        .divider {
+            width: 100%;
+            border: none;
+            border-top: 0.2rem solid #EDE7FF;
+            margin: 1.8rem 0;
+        }
+
+        /* ---------- Lista de links ---------- */
+        .links {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.9rem;
+        }
+
+        .link-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            width: 100%;
+            padding: 0.9rem 1.2rem;
+            background: var(--color-surface);
+            border: 2px solid #DAD8EA;
+            border-radius: 50px;
+            transition: var(--transition);
+            animation: aparecer 0.6s both;
+        }
+
+        .link-card:nth-child(1) { animation-delay: 0.05s; }
+        .link-card:nth-child(2) { animation-delay: 0.12s; }
+        .link-card:nth-child(3) { animation-delay: 0.19s; }
+        .link-card:nth-child(4) { animation-delay: 0.26s; }
+        .link-card:nth-child(5) { animation-delay: 0.33s; }
+        .link-card:nth-child(6) { animation-delay: 0.40s; }
+        .link-card:nth-child(7) { animation-delay: 0.47s; }
+
+        .link-card:hover,
+        .link-card:focus-visible {
+            border-color: var(--color-secondary);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(58, 102, 255, 0.18);
+            outline: none;
+        }
+
+        .avatar {
+            flex-shrink: 0;
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1rem;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        }
+
+        .avatar span {
+            color: #fff;
+        }
+
+        .info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .name {
+            font-weight: 700;
+            font-size: 1.05rem;
+        }
+
+        .handle {
+            font-size: 0.85rem;
+            opacity: 0.65;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .github-icon {
+            flex-shrink: 0;
+            width: 1.5rem;
+            height: 1.5rem;
+            fill: var(--color-text);
+            transition: var(--transition);
+        }
+
+        .link-card:hover .github-icon {
+            fill: var(--color-secondary);
+            transform: translateX(3px);
+        }
+
+        footer {
+            margin-top: 2.2rem;
+            font-size: 0.85rem;
+            text-align: center;
+            opacity: 0.7;
+        }
+
+        @keyframes aparecer {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .link-card { animation: none; }
+        }
+
+        @media (max-width: 400px) {
+            .logo { font-size: 2.1rem; }
+            .link-card { padding: 0.8rem 1rem; }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1 class="logo">
+            <span class="title-primary">Dog</span><span class="title-secondary">School</span>
+        </h1>
+        <p class="subtitle">Conheça nossa equipe</p>
+        <p class="description">Acesse o GitHub de cada integrante</p>
+
+        <hr class="divider">
+
+        <nav class="links" aria-label="GitHub da equipe">
+            <a class="link-card" href="https://github.com/gabri05el" target="_blank" rel="noopener noreferrer">
+                <div class="avatar"><span>GF</span></div>
+                <div class="info">
+                    <span class="name">Gabriel Fonseca</span>
+                    <span class="handle">@gabri05el</span>
+                </div>
+                <svg class="github-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+            </a>
+
+            <a class="link-card" href="https://github.com/saikihector" target="_blank" rel="noopener noreferrer">
+                <div class="avatar"><span>HS</span></div>
+                <div class="info">
+                    <span class="name">Hector Saiki</span>
+                    <span class="handle">@saikihector</span>
+                </div>
+                <svg class="github-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+            </a>
+
+            <a class="link-card" href="https://github.com/IgorVinicin" target="_blank" rel="noopener noreferrer">
+                <div class="avatar"><span>IV</span></div>
+                <div class="info">
+                    <span class="name">Igor Vinícius</span>
+                    <span class="handle">@IgorVinicin</span>
+                </div>
+                <svg class="github-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+            </a>
+
+            <a class="link-card" href="https://github.com/jaopazzini" target="_blank" rel="noopener noreferrer">
+                <div class="avatar"><span>JV</span></div>
+                <div class="info">
+                    <span class="name">João Vitor</span>
+                    <span class="handle">@jaopazzini</span>
+                </div>
+                <svg class="github-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+            </a>
+
+            <a class="link-card" href="https://github.com/LuFukuo" target="_blank" rel="noopener noreferrer">
+                <div class="avatar"><span>LV</span></div>
+                <div class="info">
+                    <span class="name">Lucas Vilas</span>
+                    <span class="handle">@LuFukuo</span>
+                </div>
+                <svg class="github-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+            </a>
+
+            <a class="link-card" href="https://github.com/MarcosFloreano" target="_blank" rel="noopener noreferrer">
+                <div class="avatar"><span>MA</span></div>
+                <div class="info">
+                    <span class="name">Marco Antonio</span>
+                    <span class="handle">@MarcosFloreano</span>
+                </div>
+                <svg class="github-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+            </a>
+
+            <a class="link-card" href="https://github.com/vitor-leal1" target="_blank" rel="noopener noreferrer">
+                <div class="avatar"><span>VS</span></div>
+                <div class="info">
+                    <span class="name">Vitor Souza</span>
+                    <span class="handle">@vitor-leal1</span>
+                </div>
+                <svg class="github-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+            </a>
+        </nav>
+
+        <footer>
+            <p>© 2026 DogSchool · Feito pela nossa equipe</p>
+        </footer>
+    </main>
+</body>
+</html>
