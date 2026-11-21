@@ -2,6 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const { rateLimit } = require('express-rate-limit');
 const pool = require('../db/pool');
+const { criptografar, descriptografar, indiceBusca } = require('../services/protecaoDadosPessoais');
 
 const router = express.Router();
 
@@ -57,9 +58,10 @@ router.post('/register', limitarCadastros, async (req, res, next) => {
     try {
         const senhaHash = await bcrypt.hash(senha, 12);
         await pool.query(
-            `INSERT INTO candidato (nome_completo, email, cpf, senha_hash)
-             VALUES ($1, $2, $3, $4)`,
-            [nome, email, cpf, senhaHash]
+            `INSERT INTO candidato (nome_completo, email_cifrado, cpf_cifrado, email_indice, cpf_indice, senha_hash)
+             VALUES ($1, $2, $3, $4, $5, $6)`,
+            [nome, criptografar('email', email), criptografar('cpf', cpf),
+             indiceBusca('email', email), indiceBusca('cpf', cpf), senhaHash]
         );
         return res.status(201).json({ mensagem: 'Cadastro realizado com sucesso! Faça login.' });
     } catch (error) {
@@ -92,8 +94,8 @@ router.post('/login', limitarTentativasLogin, async (req, res, next) => {
         const consulta = await pool.query(
             `SELECT id_candidato, nome_completo, senha_hash
             FROM candidato
-            WHERE cpf = $1`,
-            [cpf]
+            WHERE cpf_indice = $1`,
+            [indiceBusca('cpf', cpf)]
         );
 
         const candidato = consulta.rows[0];
@@ -147,7 +149,7 @@ router.get('/profile', async (req, res, next) => {
     }
     try {
         const consulta = await pool.query(
-            `SELECT id_candidato, nome_completo, cpf, email
+            `SELECT id_candidato, nome_completo, cpf_cifrado, email_cifrado
              FROM candidato WHERE id_candidato = $1`,
             [req.session.candidato.id]
         );
@@ -158,8 +160,8 @@ router.get('/profile', async (req, res, next) => {
         return res.json({ usuario: {
             id: c.id_candidato,
             nome: c.nome_completo,
-            cpf: c.cpf.trim(),
-            email: c.email,
+            cpf: descriptografar('cpf', c.cpf_cifrado),
+            email: descriptografar('email', c.email_cifrado),
         }});
     } catch (error) {
         return next(error);
@@ -185,10 +187,10 @@ router.patch('/profile', async (req, res, next) => {
 
     try {
         const consulta = await pool.query(
-            `UPDATE candidato SET nome_completo = $1, email = $2
-             WHERE id_candidato = $3
-             RETURNING id_candidato, nome_completo, cpf, email`,
-            [nome, email, req.session.candidato.id]
+            `UPDATE candidato SET nome_completo = $1, email_cifrado = $2, email_indice = $3
+             WHERE id_candidato = $4
+             RETURNING id_candidato, nome_completo, cpf_cifrado, email_cifrado`,
+            [nome, criptografar('email', email), indiceBusca('email', email), req.session.candidato.id]
         );
         if (!consulta.rowCount) {
             return res.status(401).json({ mensagem: 'Usuário não encontrado.' });
@@ -201,8 +203,8 @@ router.patch('/profile', async (req, res, next) => {
         return res.json({ usuario: {
             id: c.id_candidato,
             nome: c.nome_completo,
-            cpf: c.cpf.trim(),
-            email: c.email,
+            cpf: descriptografar('cpf', c.cpf_cifrado),
+            email: descriptografar('email', c.email_cifrado),
         }});
     } catch (error) {
         if (error.code === '23505') {

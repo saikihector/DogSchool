@@ -22,6 +22,8 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     environment:
+      DATA_ENCRYPTION_KEY: ${DATA_ENCRYPTION_KEY:?Defina DATA_ENCRYPTION_KEY no .env}
+      DATA_LOOKUP_KEY: ${DATA_LOOKUP_KEY:?Defina DATA_LOOKUP_KEY no .env}
       NODE_ENV: production
       PORT: 3000
       SESSION_SECRET: ${SESSION_SECRET:?Defina SESSION_SECRET no arquivo .env}

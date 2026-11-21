@@ -1,8 +1,10 @@
 CREATE TABLE IF NOT EXISTS candidato (
     id_candidato SERIAL PRIMARY KEY,
     nome_completo VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    cpf CHAR(11) NOT NULL UNIQUE CHECK (cpf ~ '^[0-9]{11}$'),
+    email_cifrado TEXT NOT NULL,
+    cpf_cifrado TEXT NOT NULL,
+    email_indice CHAR(64) NOT NULL UNIQUE,
+    cpf_indice CHAR(64) NOT NULL UNIQUE,
     senha_hash VARCHAR(255) NOT NULL
 );
 

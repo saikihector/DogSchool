@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const { randomBytes, createHash } = require('node:crypto');
 const { rateLimit } = require('express-rate-limit');
 const pool = require('../db/pool');
+const { indiceBusca } = require('../services/protecaoDadosPessoais');
 const { enviarRecuperacao } = require('../services/emailRecuperacao');
 
 const router = express.Router();
@@ -30,7 +31,7 @@ router.post('/forgot-password', limitarPedidos, async (req, res, next) => {
   }
 
   try {
-    const result = await pool.query('SELECT id_candidato FROM candidato WHERE email = $1', [email]);
+    const result = await pool.query('SELECT id_candidato FROM candidato WHERE email_indice = $1', [indiceBusca('email', email)]);
     const candidato = result.rows[0];
     if (!candidato) return res.json({ mensagem: respostaGenerica });
 
