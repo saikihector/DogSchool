@@ -1,0 +1,8 @@
+node_modules/
+.env
+.DS_Store
+.vscode/
+pgdata/
+
+# Backup do PostgreSQL
+/database/db-dogschool-backup.sql

@@ -1,0 +1,28 @@
+.git
+.vscode
+**/node_modules
+**/.env
+**/.env.*
+docs
+Figma
+Diagramas
+modelagem banco
+
+# Credenciais e variáveis de ambiente
+.env
+.env.*
+!.env.example
+
+# Dependências
+node_modules/
+**/node_modules/
+
+# Backups e dados locais
+backups/
+*.dump
+*.backup
+*.bak
+
+# Arquivos temporários
+*.log
+*.zip

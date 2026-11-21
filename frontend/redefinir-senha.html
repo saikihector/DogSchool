@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <link rel="shortcut icon" href="./src/images/icons/dogschool.ico" type="image/x-icon">
+  <link rel="stylesheet" href="src/css/esqueci-senha.css">
+  <title>Nova senha | DogSchool</title>
+</head>
+<body>
+  <div class="container recovery">
+    <nav class="btn-home"><a class="button-voltar" href="acesso.html">← Voltar ao login</a></nav>
+    <div class="form-container">
+      <form id="resetform" autocomplete="off">
+        <h1 class="title">Criar nova senha</h1>
+        <p class="ajuda">Escolha uma senha diferente da anterior, com pelo menos 8 caracteres.</p>
+        <label class="sr-only" for="nova-senha">Nova senha</label>
+        <input id="nova-senha" type="password" name="senha" placeholder="Nova senha" autocomplete="new-password" minlength="8" required>
+        <label class="sr-only" for="confirmar-senha">Confirmar nova senha</label>
+        <input id="confirmar-senha" type="password" name="confirmacao" placeholder="Confirme a nova senha" autocomplete="new-password" minlength="8" required>
+        <button type="submit">Salvar nova senha</button>
+        <p id="aviso-redefinicao" class="aviso" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </div>
+  <script src="src/js/api.js"></script>
+  <script src="src/js/redefinir-senha.js"></script>
+</body>
+</html>
