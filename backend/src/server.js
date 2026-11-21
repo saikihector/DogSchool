@@ -86,7 +86,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/auth', passwordResetRoutes);
 app.use('/api/assessments', assessmentRoutes);
 app.use('/api/certificates', certificateRoutes);
-app.use(express.static(path.resolve(__dirname, '../frontend/build')));
+// Disponibiliza as páginas HTML, CSS, JavaScript e imagens do frontend.
+app.use(express.static(path.resolve(__dirname, '../../frontend')));
 
 // Registra erros do servidor e retorna mensagens genéricas para falhas internas.
 function tratarErroServidor(error, req, res, next) {
