@@ -263,18 +263,38 @@ async function cadastrarUsuario({ nome, email, cpf, senha }) {
 }
 
 async function autenticarUsuario({ cpf, senha }) {
-  const { response, data } = await window.apiAuth('/login', {
+  const { response, data, respostaInvalida } = await window.apiAuth('/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ cpf, senha }),
   });
 
+  if (respostaInvalida) {
+    return { success: false, contarTentativa: false,
+      error: 'Falha na comunicação com o servidor. Tente novamente mais tarde.' };
+  }
+
+  // Somente HTTP 401 desta rota representa credenciais incorretas.
+  if (response.status === 401) {
+    return { success: false, contarTentativa: true,
+      error: 'CPF ou senha incorretos!' };
+  }
+
+  if (response.status === 429) {
+    return { success: false, contarTentativa: false,
+      error: 'Muitas tentativas de login. Aguarde alguns minutos.' };
+  }
+
   if (!response.ok) {
-    return { success: false, error: data.mensagem || 'CPF ou senha incorretos!' };
+    return { success: false, contarTentativa: false,
+      error: response.status === 400
+        ? (data.mensagem || 'Confira o CPF e a senha informados.')
+        : 'Não foi possível entrar. Tente novamente mais tarde.' };
   }
 
   if (!data.usuario?.id) {
-    return { success: false, error: 'Resposta de login inválida.' };
+    return { success: false, contarTentativa: false,
+      error: 'Resposta de login inválida. Tente novamente mais tarde.' };
   }
 
   return { success: true, usuario: data.usuario };
@@ -377,7 +397,7 @@ if (loginForm) {
         const destino = sessionStorage.getItem('voltarPara') || 'index.html';
         sessionStorage.removeItem('voltarPara');
         window.location.href = destino;
-      } else {
+      } else if (data.contarTentativa) {
         const dados = registrarFalha(cpf);
         const bloqueio = segundosRestantes(cpf);
         if (bloqueio > 0) {
@@ -389,6 +409,9 @@ if (loginForm) {
           mostrarErro(loginForm.cpf, data.error);
           mostrarErro(loginForm.senha, `Restam ${restantes} tentativa(s)`);
         }
+      } else {
+        // Erro de rede/API não é falha de senha e não deve consumir tentativas.
+        mostrarToast(data.error, 'erro');
       }
     } catch (error) {
       mostrarToast('Ocorreu um erro. Tente novamente.', 'erro');
