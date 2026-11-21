@@ -1,0 +1,20 @@
+# Detectar automaticamente arquivos de texto
+* text=auto
+
+# Documentos e arquivos de modelagem
+*.pdf binary
+*.docx binary
+*.xlsx binary
+*.asta binary
+
+# Imagens
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+
+# Fontes
+*.ttf binary
+*.woff binary
+*.woff2 binary
