@@ -15,8 +15,11 @@ const alternativas = ['a', 'b', 'c', 'd'].map((letra) =>
 
 const idTentativa = new URLSearchParams(window.location.search).get('attemptId');
 const TEMPO_TOTAL = 150;
+const TEMPO_EXIBICAO_GABARITO = 5000; // 5 segundos mostrando a resposta correta na tela
+
 let alternativaSelecionada = null;
 let cronometro = null;
+let timerFeedback = null;
 let encerrada = false;
 let enviandoResposta = false;
 let tentativaConcluida = false;
@@ -77,7 +80,7 @@ function renderizarQuestao(dados) {
     questao.alternativas.forEach((opcao, indice) => {
         const elemento = alternativas[indice];
         elemento.dataset.idAlternativa = opcao.id;
-        elemento.dataset.letra = opcao.letra;
+        elemento.dataset.letra = String(opcao.letra || '').trim().toUpperCase();
         elemento.querySelector('.main__alternativa').textContent = opcao.letra;
         elemento.querySelector('.main__alternativa_texto').textContent = opcao.texto;
         elemento.classList.remove(
@@ -139,7 +142,7 @@ async function enviarResposta(idAlternativa) {
         }
 
         encerrada = true;
-        tentativaConcluida = data.concluida;
+        tentativaConcluida = Boolean(data.concluida);
         mostrarFeedback(data);
     } catch (error) {
         console.error('Erro ao registrar a resposta:', error);
@@ -150,11 +153,21 @@ async function enviarResposta(idAlternativa) {
     }
 }
 
-// Mostra o acerto e o gabarito retornados após a validação do servidor.
+// Destaca a alternativa correta na tela por 5s antes de abrir o painel de decisão.
 function mostrarFeedback(resposta) {
+    const letraCorreta = String(
+        resposta.alternativaCorreta || resposta.correta || ''
+    ).trim().toUpperCase();
+
+    let textoAlternativaCorreta = '';
+
+    // 1. Destaca imediatamente a alternativa correta (verde) e a errada selecionada (vermelho)
     alternativas.forEach((alternativa) => {
-        if (alternativa.dataset.letra === resposta.alternativaCorreta) {
+        const letraOpcao = String(alternativa.dataset.letra || '').trim().toUpperCase();
+        if (letraOpcao === letraCorreta) {
             alternativa.classList.add('main__alternativa_certo');
+            const textoOpcao = alternativa.querySelector('.main__alternativa_texto')?.textContent || '';
+            textoAlternativaCorreta = `${letraCorreta}) ${textoOpcao}`;
         } else if (
             alternativa.dataset.idAlternativa === String(alternativaSelecionada) &&
             !resposta.correto
@@ -163,23 +176,44 @@ function mostrarFeedback(resposta) {
         }
     });
 
-    const painel = tempoEsgotado ? painelTempo : painelContinuar;
-    painel.classList.remove(
-        tempoEsgotado ? 'limite__tempo_div_off' : 'continuar__pausar_div_off'
-    );
-    painel.classList.add(
-        tempoEsgotado ? 'limite__tempo_div' : 'continuar__pausar_div'
-    );
-    if (tentativaConcluida) {
-        painel.querySelector('p').textContent = 'Avaliação concluída. Consulte seu resultado.';
-        painel.querySelector('button').textContent = 'Ver resultado';
-    }
-
-    cabecalho.classList.remove('header');
-    cabecalho.classList.add('header__off');
-    conteudo.classList.add('desfoque');
+    // Oculta o botão de confirmar e mantém a tela nítida durante os 5 segundos
     botaoContainer.classList.remove('main__botao');
     botaoContainer.classList.add('main__botao_off');
+    conteudo.classList.remove('desfoque');
+
+    if (timerFeedback) window.clearTimeout(timerFeedback);
+
+    // 2. Aguarda 5 segundos para o candidato visualizar o gabarito antes de exibir o modal
+    timerFeedback = window.setTimeout(() => {
+        if (processandoSaida) return;
+
+        const painel = tempoEsgotado ? painelTempo : painelContinuar;
+        painel.classList.remove(
+            tempoEsgotado ? 'limite__tempo_div_off' : 'continuar__pausar_div_off'
+        );
+        painel.classList.add(
+            tempoEsgotado ? 'limite__tempo_div' : 'continuar__pausar_div'
+        );
+
+        const textoPainel = painel.querySelector('p');
+        const infoGabarito = textoAlternativaCorreta
+            ? `Resposta correta: ${textoAlternativaCorreta}`
+            : `Resposta correta: Alternativa ${letraCorreta}`;
+
+        if (tentativaConcluida) {
+            textoPainel.textContent = `${infoGabarito}. Avaliação concluída! Consulte seu resultado.`;
+            painel.querySelector('button').textContent = 'Resultado';
+        } else if (tempoEsgotado) {
+            textoPainel.textContent = `Tempo esgotado! ${infoGabarito}.`;
+        } else if (resposta.correto) {
+            textoPainel.textContent = `Resposta correta! (${infoGabarito}).`;
+        } else {
+            textoPainel.textContent = `Resposta incorreta. ${infoGabarito}.`;
+        }
+
+        cabecalho.classList.remove('header');
+        cabecalho.classList.add('header__off');
+    }, TEMPO_EXIBICAO_GABARITO);
 }
 
 // Carrega do servidor a próxima questão ainda não respondida.
@@ -193,7 +227,6 @@ async function carregarQuestao() {
     const tarefa = (async () => {
         mensagemErro.hidden = true;
         try {
-            // Apenas o POST explícito inicia ou retoma a contagem no PostgreSQL.
             const retomada = await window.apiRequest(
                 `/assessments/attempts/${idTentativa}/resume`,
                 { method: 'POST' }
@@ -207,7 +240,6 @@ async function carregarQuestao() {
                 return;
             }
 
-            // GET consulta a questão, SEM reiniciar cronômetro no backend.
             const { response, data } = await window.apiRequest(
                 `/assessments/attempts/${idTentativa}/current`
             );
@@ -233,7 +265,6 @@ async function carregarQuestao() {
             botaoConfirmar.disabled = true;
         }
     })();
-
     carregamentoPendente = tarefa;
     try {
         await tarefa;
@@ -241,14 +272,13 @@ async function carregarQuestao() {
         if (carregamentoPendente === tarefa) carregamentoPendente = null;
     }
 }
-
 // Vai para a próxima pergunta ou para o resultado depois da confirmação final.
 function avancarAvaliacao() {
+    if (timerFeedback) window.clearTimeout(timerFeedback);
     if (tentativaConcluida) {
         window.location.href = `resultado.html?attemptId=${idTentativa}`;
         return;
     }
-
     painelContinuar.classList.add('continuar__pausar_div_off');
     painelContinuar.classList.remove('continuar__pausar_div');
     painelTempo.classList.add('limite__tempo_div_off');
@@ -258,59 +288,54 @@ function avancarAvaliacao() {
     conteudo.classList.remove('desfoque');
     carregarQuestao();
 }
-
-// Pausa o relógio real no backend, preservando os segundos restantes.
-async function pausarNoServidor() {
-    if (!/^\d+$/.test(idTentativa || '')) return;
-    const { response, data } = await window.apiRequest(
-        `/assessments/attempts/${idTentativa}/pause`,
-        { method: 'POST' }
-    );
-    if (!response.ok) {
-        throw new Error(data.mensagem || 'Não foi possível pausar a avaliação.');
+// Pausa o cronômetro no servidor quando o candidato fecha ou recarrega a página.
+function pausarPorSaida() {
+    if (encerrada || tentativaConcluida || processandoSaida || !/^\d+$/.test(idTentativa || '')) {
+        return;
     }
+    if (cronometro !== null) window.clearInterval(cronometro);
+    cronometro = null;
+    window.apiRequest(' /assessments/attempts / ${ idTentativa } / pause ', {
+        method: 'POST',
+        keepalive: true,
+    }).catch((error) => console.error('Falha ao pausar a avaliação:', error));
 }
-
-async function sairComPausa(destino, voltarDoHistorico = false) {
+// Pausa o cronômetro antes de sair da tela de prova.
+async function sairEncerrandoQuestao(destino) {
     if (processandoSaida) return;
     processandoSaida = true;
     if (cronometro !== null) window.clearInterval(cronometro);
+    if (timerFeedback) window.clearTimeout(timerFeedback);
     cronometro = null;
-
     try {
-        // Garante que um POST /resume iniciado antes do Voltar termine
-        // antes do POST /pause, eliminando a corrida entre as duas chamadas.
         if (carregamentoPendente) await carregamentoPendente;
-        await pausarNoServidor();
-        window.location.replace(destino);
+        if (!encerrada && !tentativaConcluida) {
+            const { response, data } = await window.apiRequest(
+                ' /assessments/attempts / ${ idTentativa } / pause ',
+                { method: 'POST' }
+            );
+            if (!response.ok) {
+                throw new Error(data.mensagem || 'Não foi possível pausar a avaliação.');
+            }
+        }
     } catch (erro) {
         console.error('Falha ao pausar a avaliação:', erro);
-        mensagemErro.textContent = `${erro.message} Você ainda está na avaliação.`;
-        mensagemErro.hidden = false;
-        processandoSaida = false;
-        // Se o Voltar foi interceptado, restaura a entrada de histórico usada para capturá-lo.
-        if (voltarDoHistorico) {
-            window.history.pushState({ dogsQuestao: true }, '', window.location.href);
-        }
-        // Recarrega o tempo real do servidor para evitar mostrar um relógio parado por engano.
-        if (!encerrada) carregarQuestao();
+    } finally {
+        window.location.replace(destino);
     }
 }
-
-// O primeiro Voltar sai somente desta entrada artificial, sem descarregar a página.
-// Assim podemos concluir a pausa no servidor ANTES de retornar às regras.
+// Intercepta fechamento de aba, atualização (F5) ou saída direta da página.
+window.addEventListener('pagehide', pausarPorSaida);
+// Intercepta o botão Voltar do navegador e pausa a avaliação antes de sair.
 window.history.pushState({ dogsQuestao: true }, '', window.location.href);
 window.addEventListener('popstate', () => {
-    sairComPausa('avaliacao.html', true);
+    sairEncerrandoQuestao('avaliacao.html');
 });
-
-// Botão Ver progresso também grava a pausa antes de navegar.
+// Botão "Ver progresso" / "Encerrar sessão" encerra a questão em aberto (se houver) antes de sair.
 function pausarAvaliacao() {
-    sairComPausa('progresso.html');
+    sairEncerrandoQuestao('progresso.html');
 }
-
-// Páginas antigas restauradas pelo bfcache não devem retomar a avaliação
-// sem a ação explícita do candidato em "Começar Avaliação".
+// Páginas antigas restauradas pelo cache do navegador redirecionam para a tela inicial da avaliação.
 window.addEventListener('pageshow', (evento) => {
     if (evento.persisted) {
         if (cronometro !== null) window.clearInterval(cronometro);
@@ -318,17 +343,14 @@ window.addEventListener('pageshow', (evento) => {
         window.location.replace('avaliacao.html');
     }
 });
-
-// Confirma a alternativa escolhida ou tenta novamente salvar um timeout.
+// Confirma a alternativa escolhida ou registra o timeout.
 function confirmarResposta() {
     enviarResposta(tempoEsgotado ? null : alternativaSelecionada);
 }
-
 alternativas.forEach(configurarAlternativa);
 botaoConfirmar.addEventListener('click', confirmarResposta);
 document.getElementById('proxima-questao-tempo').addEventListener('click', avancarAvaliacao);
 document.getElementById('proxima-questao').addEventListener('click', avancarAvaliacao);
 document.getElementById('pausar-certificado-tempo').addEventListener('click', pausarAvaliacao);
 document.getElementById('pausar-certificado').addEventListener('click', pausarAvaliacao);
-
 carregarQuestao();
