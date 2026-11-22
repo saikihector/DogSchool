@@ -195,21 +195,37 @@ function mostrarFeedback(resposta) {
             tempoEsgotado ? 'limite__tempo_div' : 'continuar__pausar_div'
         );
 
-        const textoPainel = painel.querySelector('p');
+        // Mostra apenas um título e uma mensagem, sem os parágrafos antigos.
+        const titulo = painel.querySelector('.feedback-titulo');
+        const mensagem = painel.querySelector(
+            tempoEsgotado ? '#limite-tempo-mensagem' : '#cont-pausa-mensagem'
+        );
+        const orientacao = painel.querySelector('.feedback-orientacao');
+        const botaoAvancar = painel.querySelector(
+            tempoEsgotado ? '#proxima-questao-tempo' : '#proxima-questao'
+        );
+
         const infoGabarito = textoAlternativaCorreta
-            ? `Resposta correta: ${textoAlternativaCorreta}`
-            : `Resposta correta: Alternativa ${letraCorreta}`;
+            ? `Alternativa correta: ${textoAlternativaCorreta}`
+            : letraCorreta
+                ? `Alternativa correta: ${letraCorreta}`
+                : 'Consulte o resultado para conferir a resposta.';
 
         if (tentativaConcluida) {
-            textoPainel.textContent = `${infoGabarito}. Avaliação concluída! Consulte seu resultado.`;
-            painel.querySelector('button').textContent = 'Resultado';
-        } else if (tempoEsgotado) {
-            textoPainel.textContent = `Tempo esgotado! ${infoGabarito}.`;
-        } else if (resposta.correto) {
-            textoPainel.textContent = `Resposta correta! (${infoGabarito}).`;
+            titulo.textContent = 'Avaliação concluída!';
+            orientacao.textContent = 'Confira seu resultado ou acesse seu progresso.';
+            botaoAvancar.textContent = 'Ver resultado';
         } else {
-            textoPainel.textContent = `Resposta incorreta. ${infoGabarito}.`;
+            titulo.textContent = tempoEsgotado
+                ? 'Tempo esgotado!'
+                : resposta.correto
+                    ? 'Você acertou!'
+                    : 'Resposta incorreta.';
+            orientacao.textContent = 'Avance para a próxima questão ou acompanhe seu progresso.';
+            botaoAvancar.textContent = 'Próxima questão';
         }
+
+        mensagem.textContent = infoGabarito;
 
         cabecalho.classList.remove('header');
         cabecalho.classList.add('header__off');
@@ -295,7 +311,7 @@ function pausarPorSaida() {
     }
     if (cronometro !== null) window.clearInterval(cronometro);
     cronometro = null;
-    window.apiRequest(' /assessments/attempts / ${ idTentativa } / pause ', {
+    window.apiRequest(`/assessments/attempts/${idTentativa}/pause`, {
         method: 'POST',
         keepalive: true,
     }).catch((error) => console.error('Falha ao pausar a avaliação:', error));
@@ -311,7 +327,7 @@ async function sairEncerrandoQuestao(destino) {
         if (carregamentoPendente) await carregamentoPendente;
         if (!encerrada && !tentativaConcluida) {
             const { response, data } = await window.apiRequest(
-                ' /assessments/attempts / ${ idTentativa } / pause ',
+                `/assessments/attempts/${idTentativa}/pause`,
                 { method: 'POST' }
             );
             if (!response.ok) {
