@@ -371,12 +371,13 @@ button.btnLogin-popup {
 footer {
     color: var(--color-text);
     max-height: 400px;
-    height: 100%;
     width: 100%;
     margin: 0 auto;
     text-align: center;
-    padding: 1em 0;
+    padding: 2.5em 0;
     box-sizing: border-box;
+    position: relative;
+    border-top: solid 1px var(--color-secondary);
 }
 
 /* ---------- Hambúrguer (escondido no desktop) ---------- */
