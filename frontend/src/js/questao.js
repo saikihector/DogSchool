@@ -20,8 +20,7 @@ const TEMPO_EXIBICAO_GABARITO = 5000; // 5 segundos mostrando a resposta correta
 let alternativaSelecionada = null;
 let cronometro = null;
 let timerFeedback = null;
-// Só considera uma questão aberta depois que ela foi carregada com sucesso.
-let encerrada = true;
+let encerrada = false;
 let enviandoResposta = false;
 let tentativaConcluida = false;
 let tempoEsgotado = false;
@@ -40,7 +39,7 @@ function configurarAlternativa(alternativa) {
 
 // Atualiza a alternativa selecionada e habilita o botão de confirmação.
 function selecionarAlternativa(evento) {
-    if (encerrada || tempoEsgotado || enviandoResposta || !idProgressoAtual) return;
+    if (encerrada || tempoEsgotado) return;
 
     alternativas.forEach((alternativa) => {
         alternativa.classList.remove('main__alternativa_selecionada');
@@ -123,7 +122,7 @@ function iniciarCronometro(segundos) {
 
 // Envia a resposta selecionada; o servidor verifica a alternativa e o tempo.
 async function enviarResposta(idAlternativa) {
-    if (encerrada || enviandoResposta || !idProgressoAtual) return;
+    if (encerrada || enviandoResposta) return;
     enviandoResposta = true;
     botaoConfirmar.disabled = true;
     mensagemErro.hidden = true;
@@ -136,8 +135,7 @@ async function enviarResposta(idAlternativa) {
             {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ idProgresso: idProgressoAtual, idAlternativa }),
-                keepalive: true,
+                body: JSON.stringify({ idAlternativa, idProgresso: idProgressoAtual }),
             }
         );
         if (!response.ok) {
@@ -235,43 +233,8 @@ function mostrarFeedback(resposta) {
     }, TEMPO_EXIBICAO_GABARITO);
 }
 
-// Encerra apenas a questão identificada; se ela já tiver uma resposta, o
-// backend ignora a solicitação. A próxima questão nunca é afetada.
-function requisitarAbandono(idProgresso, keepalive = false) {
-    return window.apiRequest(`/assessments/attempts/${idTentativa}/answers`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idProgresso, idAlternativa: null }),
-        keepalive,
-    });
-}
-
-// Na abertura de uma NOVA página, uma questão ainda ativa significa que a
-// página anterior foi abandonada (inclusive quando o navegador não conseguiu
-// enviar a requisição de pagehide). A verificação não acontece ao avançar
-// normalmente entre questões na mesma página.
-async function recuperarSaidaAnterior() {
-    const consulta = await window.apiRequest(
-        `/assessments/attempts/${idTentativa}/current`
-    );
-    if (!consulta.response.ok) {
-        throw new Error(consulta.data.mensagem || 'Não foi possível verificar a avaliação.');
-    }
-    if (consulta.data.concluida || !consulta.data.questaoAtiva) return;
-
-    const idAnterior = Number(consulta.data.idProgresso);
-    if (!Number.isSafeInteger(idAnterior) || idAnterior <= 0) {
-        throw new Error('O servidor não identificou a questão pendente.');
-    }
-    const encerramento = await requisitarAbandono(idAnterior);
-    if (!encerramento.response.ok) {
-        throw new Error(encerramento.data.mensagem || 'Não foi possível encerrar a questão anterior.');
-    }
-}
-
-// Carrega a próxima questão ainda não respondida. Só a primeira execução da
-// página recupera possíveis saídas anteriores; o avanço no próprio site não.
-async function carregarQuestao(verificarSaidaAnterior = false) {
+// Carrega do servidor a próxima questão ainda não respondida.
+async function carregarQuestao() {
     if (!/^\d+$/.test(idTentativa || '')) {
         window.location.replace('avaliacao.html');
         return;
@@ -280,15 +243,7 @@ async function carregarQuestao(verificarSaidaAnterior = false) {
 
     const tarefa = (async () => {
         mensagemErro.hidden = true;
-        idProgressoAtual = null;
-        encerrada = true;
-        botaoConfirmar.disabled = true;
         try {
-            if (verificarSaidaAnterior) {
-                await recuperarSaidaAnterior();
-                if (processandoSaida) return;
-            }
-
             const retomada = await window.apiRequest(
                 `/assessments/attempts/${idTentativa}/resume`,
                 { method: 'POST' }
@@ -313,16 +268,12 @@ async function carregarQuestao(verificarSaidaAnterior = false) {
                 window.location.replace(`resultado.html?attemptId=${idTentativa}`);
                 return;
             }
-            const novoId = Number(data.idProgresso);
-            if (!Number.isSafeInteger(novoId) || novoId <= 0) {
-                throw new Error('O servidor não identificou a questão atual.');
-            }
 
-            renderizarQuestao(data);
-            idProgressoAtual = novoId;
-            enviandoResposta = false;
-            tempoEsgotado = false;
             encerrada = false;
+            enviandoResposta = false;
+            idProgressoAtual = Number(data.idProgresso);
+            tempoEsgotado = false;
+            renderizarQuestao(data);
             iniciarCronometro(data.restanteSegundos);
         } catch (error) {
             if (processandoSaida) return;
@@ -339,7 +290,6 @@ async function carregarQuestao(verificarSaidaAnterior = false) {
         if (carregamentoPendente === tarefa) carregamentoPendente = null;
     }
 }
-
 // Vai para a próxima pergunta ou para o resultado depois da confirmação final.
 function avancarAvaliacao() {
     if (timerFeedback) window.clearTimeout(timerFeedback);
@@ -354,35 +304,70 @@ function avancarAvaliacao() {
     cabecalho.classList.remove('header__off');
     cabecalho.classList.add('header');
     conteudo.classList.remove('desfoque');
-    carregarQuestao(false);
+    carregarQuestao();
 }
-
-// O fechamento da página é uma tentativa imediata de registrar abandono.
-// Não envia nada enquanto a confirmação normal estiver em andamento, ou antes
-// de a questão ter sido efetivamente carregada.
+// Registra a questão atual como incorreta quando o candidato fecha ou recarrega a página.
 function encerrarComoIncorretaPorSaida() {
-    if (encerrada || enviandoResposta || processandoSaida || !idProgressoAtual ||
-        !/^\d+$/.test(idTentativa || '')) return;
+    if (encerrada || enviandoResposta || tentativaConcluida || processandoSaida ||
+        !Number.isSafeInteger(idProgressoAtual) || idProgressoAtual <= 0 ||
+        !/^\d+$/.test(idTentativa || '')) {
+        return;
+    }
 
-    processandoSaida = true;
     if (cronometro !== null) window.clearInterval(cronometro);
     cronometro = null;
-    const idSaindo = idProgressoAtual;
-    requisitarAbandono(idSaindo, true).catch((error) => {
-        console.error('Falha ao notificar saída. Será verificada na retomada:', error);
-    });
+    encerrada = true;
+
+    // Enviar null significa que nenhuma alternativa foi escolhida: o servidor registra erro.
+    window.apiRequest(`/assessments/attempts/${idTentativa}/answers`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idAlternativa: null, idProgresso: idProgressoAtual }),
+        keepalive: true,
+    }).catch((error) => console.error('Falha ao registrar a questão como incorreta:', error));
 }
 
+// Registra a questão atual como incorreta antes de sair da tela de prova.
+async function sairEncerrandoQuestao(destino) {
+    if (processandoSaida) return;
+    processandoSaida = true;
+    if (cronometro !== null) window.clearInterval(cronometro);
+    if (timerFeedback) window.clearTimeout(timerFeedback);
+    cronometro = null;
+    try {
+        if (carregamentoPendente) await carregamentoPendente;
+        if (!encerrada && !tentativaConcluida && Number.isSafeInteger(idProgressoAtual) && idProgressoAtual > 0) {
+            const { response, data } = await window.apiRequest(
+                `/assessments/attempts/${idTentativa}/answers`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idAlternativa: null, idProgresso: idProgressoAtual }),
+                }
+            );
+            if (!response.ok) {
+                throw new Error(data.mensagem || 'Não foi possível encerrar a questão como incorreta.');
+            }
+            encerrada = true;
+        }
+    } catch (erro) {
+        console.error('Falha ao encerrar a questão:', erro);
+    } finally {
+        window.location.replace(destino);
+    }
+}
+// Intercepta fechamento de aba, atualização (F5) ou saída direta da página.
 window.addEventListener('pagehide', encerrarComoIncorretaPorSaida);
-
-// O botão interno só aparece depois que a resposta já foi registrada.
-// Portanto, sair por ele não penaliza a questão seguinte.
+// Intercepta o botão Voltar do navegador e encerra a questão como incorreta antes de sair.
+window.history.pushState({ dogsQuestao: true }, '', window.location.href);
+window.addEventListener('popstate', () => {
+    sairEncerrandoQuestao('avaliacao.html');
+});
+// Botão "Ver progresso" / "Encerrar sessão" encerra a questão em aberto como incorreta antes de sair.
 function pausarAvaliacao() {
-    if (!encerrada || enviandoResposta) return;
-    window.location.href = 'progresso.html';
+    sairEncerrandoQuestao('progresso.html');
 }
-
-// Nunca reutiliza uma página de prova antiga restaurada do cache do navegador.
+// Páginas antigas restauradas pelo cache do navegador redirecionam para a tela inicial da avaliação.
 window.addEventListener('pageshow', (evento) => {
     if (evento.persisted) {
         if (cronometro !== null) window.clearInterval(cronometro);
@@ -390,7 +375,6 @@ window.addEventListener('pageshow', (evento) => {
         window.location.replace('avaliacao.html');
     }
 });
-
 // Confirma a alternativa escolhida ou registra o timeout.
 function confirmarResposta() {
     enviarResposta(tempoEsgotado ? null : alternativaSelecionada);
@@ -401,4 +385,4 @@ document.getElementById('proxima-questao-tempo').addEventListener('click', avanc
 document.getElementById('proxima-questao').addEventListener('click', avancarAvaliacao);
 document.getElementById('pausar-certificado-tempo').addEventListener('click', pausarAvaliacao);
 document.getElementById('pausar-certificado').addEventListener('click', pausarAvaliacao);
-carregarQuestao(true);
+carregarQuestao();
