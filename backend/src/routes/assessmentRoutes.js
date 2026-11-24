@@ -383,15 +383,12 @@ async function registrarResposta(req, res, next) {
             );
             const expirou = Number(decorrido.rows[0].segundos) >= TEMPO_POR_QUESTAO;
 
-            if (!expirou && idAlternativa == null) {
-                const error = new Error('Selecione uma alternativa antes de confirmar.');
-                error.status = 400;
-                throw error;
-            }
+            // Alternativa nula representa questão encerrada sem resposta (timeout ou saída da página).
+            // Nesse caso, a questão é registrada como incorreta e não pode ser respondida novamente.
 
             let alternativaCorreta = null;
             let acertou = false;
-            const alternativaRegistrada = expirou ? null : idAlternativa;
+            const alternativaRegistrada = (expirou || idAlternativa == null) ? null : idAlternativa;
 
             if (alternativaRegistrada !== null) {
                 const alternativa = await client.query(
