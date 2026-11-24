@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>DogSchool | Nossa Equipe</title>
+    <meta name="description" content="Conheça a equipe de desenvolvimento do DogSchool e acesse o GitHub de cada integrante.">
+    <meta name="theme-color" content="#F5F7FC">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            text-decoration: none;
+            box-sizing: border-box;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--color-text);
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --color-primary: #3A66FF;
+            --color-primary-dark: #2b52e0;
+            --color-secondary: #7A33CC;
+            --color-background: #F5F7FC;
+            --color-surface: #FFFFFF;
+            --color-text: #18233D;
+            --color-border: #DAD8EA;
+            --color-soft: #EDE7FF;
+            --transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        html { -webkit-text-size-adjust: 100%; }
+
+        body {
+            background: var(--color-background);
+            min-height: 100vh;
+            min-height: 100dvh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Manchas decorativas ao fundo */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 0;
+            aspect-ratio: 1;
+            width: min(90vw, 520px);
+        }
+
+        body::before {
+            top: -18%;
+            right: -30%;
+            background: radial-gradient(circle, rgba(58, 102, 255, 0.22), transparent 70%);
+        }
+
+        body::after {
+            bottom: -18%;
+            left: -30%;
+            background: radial-gradient(circle, rgba(122, 51, 204, 0.2), transparent 70%);
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 560px;
+            min-height: 100vh;
+            min-height: 100dvh;
+            margin: 0 auto;
+            padding:
+                calc(1.6rem + env(safe-area-inset-top))
+                max(1.1rem, env(safe-area-inset-right))
+                calc(1.6rem + env(safe-area-inset-bottom))
+                max(1.1rem, env(safe-area-inset-left));
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* ---------- Compartilhar ---------- */
+        .share {
+            align-self: flex-end;
+            width: 2.8rem;
+            height: 2.8rem;
+            border-radius: 50%;
+            border: 2px solid var(--color-soft);
+            background: var(--color-surface);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(58, 102, 255, 0.12);
+            transition: var(--transition);
+        }
+
+        .share.visible { display: flex; }
+        .share:active { transform: scale(0.92); }
+
+        .share svg {
+            width: 1.2rem;
+            height: 1.2rem;
+            stroke: var(--color-secondary);
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* ---------- Perfil / topo ---------- */
+        .profile {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-top: 0.4rem;
+            animation: aparecer 0.7s both;
+        }
+
+        .logo-mark {
+            width: 4.6rem;
+            height: 4.6rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+            box-shadow: 0 12px 28px rgba(58, 102, 255, 0.32);
+            font-size: 1.7rem;
+            font-weight: 800;
+            color: #fff;
+            letter-spacing: -0.05em;
+        }
+
+        .logo {
+            margin-top: 1rem;
+            font-size: 2.1rem;
+            font-weight: 700;
+            line-height: 1.1;
+        }
+
+        .title-primary { color: var(--color-primary); }
+
+        .title-secondary {
+            background: linear-gradient(to right, var(--color-text), var(--color-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.8rem;
+            padding: 0.4rem 1rem;
+            background: var(--color-surface);
+            border: 2px solid var(--color-soft);
+            border-radius: 50px;
+            font-size: 0.82rem;
+            font-weight: 600;
+        }
+
+        .badge-dot {
+            width: 0.55rem;
+            height: 0.55rem;
+            border-radius: 50%;
+            background: var(--color-primary);
+            animation: pulso 2s infinite;
+        }
+
+        .bio {
+            margin-top: 0.9rem;
+            max-width: 22rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            line-height: 1.55;
+            opacity: 0.75;
+        }
+
+        /* ---------- Lista de links ---------- */
+        .links {
+            width: 100%;
+            margin-top: 1.8rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .link {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+            width: 100%;
+            min-height: 4.6rem;
+            padding: 0.7rem 1rem 0.7rem 0.7rem;
+            background: var(--color-surface);
+            border: 2px solid var(--color-soft);
+            border-radius: 50px;
+            box-shadow: 0 8px 22px rgba(24, 35, 61, 0.05);
+            transition: var(--transition);
+            opacity: 0;
+            animation: aparecer 0.6s forwards;
+            touch-action: manipulation;
+        }
+
+        .link:active {
+            transform: scale(0.97);
+            border-color: var(--color-secondary);
+            background: #FBF9FF;
+        }
+
+        .link:focus-visible {
+            outline: 3px solid var(--color-primary);
+            outline-offset: 3px;
+        }
+
+        .avatar-ring {
+            flex-shrink: 0;
+            width: 3.5rem;
+            height: 3.5rem;
+            padding: 3px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        }
+
+        .avatar {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid var(--color-surface);
+            background: var(--color-surface);
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .avatar .initials {
+            position: absolute;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #fff;
+            background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        }
+
+        .avatar.fallback img { display: none; }
+        .avatar.fallback .initials { display: flex; }
+
+        .info {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+        }
+
+        .name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .handle {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            opacity: 0.62;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .handle svg {
+            flex-shrink: 0;
+            width: 0.95rem;
+            height: 0.95rem;
+            fill: var(--color-text);
+        }
+
+        .arrow {
+            flex-shrink: 0;
+            width: 2.2rem;
+            height: 2.2rem;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-background);
+            transition: var(--transition);
+        }
+
+        .arrow svg {
+            width: 1.05rem;
+            height: 1.05rem;
+            stroke: var(--color-text);
+            fill: none;
+            stroke-width: 2.4;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .link:active .arrow { background: var(--color-primary); }
+        .link:active .arrow svg { stroke: #fff; }
+
+        /* Hover apenas em dispositivos com mouse */
+        @media (hover: hover) {
+            .link:hover {
+                transform: translateY(-3px);
+                border-color: rgba(122, 51, 204, 0.4);
+                box-shadow: 0 16px 34px rgba(58, 102, 255, 0.18);
+            }
+            .link:hover .arrow { background: var(--color-primary); }
+            .link:hover .arrow svg { stroke: #fff; }
+            .share:hover { transform: translateY(-2px); }
+        }
+
+        /* ---------- Rodapé ---------- */
+        footer {
+            margin-top: auto;
+            padding-top: 2.2rem;
+            text-align: center;
+            font-size: 0.82rem;
+            font-weight: 500;
+            opacity: 0.6;
+        }
+
+        /* ---------- Animações ---------- */
+        @keyframes aparecer {
+            from { opacity: 0; transform: translateY(18px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulso {
+            0%   { box-shadow: 0 0 0 0 rgba(58, 102, 255, 0.5); }
+            70%  { box-shadow: 0 0 0 8px rgba(58, 102, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(58, 102, 255, 0); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-delay: 0s !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Celulares bem pequenos */
+        @media (max-width: 360px) {
+            .logo { font-size: 1.8rem; }
+            .name { font-size: 0.98rem; }
+            .avatar-ring { width: 3.1rem; height: 3.1rem; }
+            .link { min-height: 4.2rem; gap: 0.7rem; }
+        }
+
+        /* Telas maiores: mais respiro */
+        @media (min-width: 700px) {
+            .page { padding-top: 3rem; }
+            .logo-mark { width: 5.4rem; height: 5.4rem; font-size: 2rem; }
+            .logo { font-size: 2.6rem; }
+            .links { gap: 1rem; margin-top: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+
+        <button class="share" id="share" type="button" aria-label="Compartilhar página">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
+        </button>
+
+        <header class="profile">
+            <div class="logo-mark" aria-hidden="true">DS</div>
+            <h1 class="logo"><span class="title-primary">Dog</span><span class="title-secondary">School</span></h1>
+            <span class="badge"><span class="badge-dot"></span> Equipe de desenvolvimento</span>
+            <p class="bio">Conheça quem constrói o DogSchool. Toque em um integrante para abrir o GitHub.</p>
+        </header>
+
+        <nav class="links" id="links" aria-label="GitHub da equipe"></nav>
+
+        <footer>© 2026 DogSchool · Desenvolvido pela nossa equipe</footer>
+    </div>
+
+    <script>
+        const membros = [
+            { nome: "Gabriel Fonseca", user: "gabri05el" },
+            { nome: "Hector Saiki",    user: "saikihector" },
+            { nome: "Igor Vinícius",   user: "IgorVinicin" },
+            { nome: "João Vitor",      user: "jaopazzini" },
+            { nome: "Lucas Vilas",     user: "LuFukuo" },
+            { nome: "Marco Antonio",   user: "MarcosFloreano" },
+            { nome: "Vitor Souza",     user: "vitor-leal1" }
+        ];
+
+        const iconeGithub = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.87-1.37-3.87-1.37-.52-1.33-1.28-1.69-1.28-1.69-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.69 1.25 3.34.96.1-.74.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>';
+        const iconeSeta = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17L17 7M8 7h9v9"/></svg>';
+
+        const iniciais = nome => nome.split(" ").map(p => p[0]).slice(0, 2).join("").toUpperCase();
+
+        const lista = document.getElementById("links");
+
+        membros.forEach((m, i) => {
+            const a = document.createElement("a");
+            a.className = "link";
+            a.href = "https://github.com/" + m.user;
+            a.target = "_blank";
+            a.rel = "noopener noreferrer";
+            a.style.animationDelay = (0.15 + i * 0.07) + "s";
+            a.setAttribute("aria-label", m.nome + " no GitHub");
+
+            a.innerHTML = `
+                <div class="avatar-ring">
+                    <div class="avatar">
+                        <img src="https://github.com/${m.user}.png?size=160" alt="" width="56" height="56" loading="lazy" decoding="async">
+                        <div class="initials">${iniciais(m.nome)}</div>
+                    </div>
+                </div>
+                <div class="info">
+                    <span class="name">${m.nome}</span>
+                    <span class="handle">${iconeGithub}<span>@${m.user}</span></span>
+                </div>
+                <span class="arrow">${iconeSeta}</span>
+            `;
+
+            // Se a foto não carregar, mostra as iniciais
+            a.querySelector("img").addEventListener("error", () => {
+                a.querySelector(".avatar").classList.add("fallback");
+            });
+
+            lista.appendChild(a);
+        });
+
+        // Botão de compartilhar (aparece só onde o aparelho suporta)
+        const btnShare = document.getElementById("share");
+        if (navigator.share) {
+            btnShare.classList.add("visible");
+            btnShare.addEventListener("click", () => {
+                navigator.share({
+                    title: "DogSchool | Nossa Equipe",
+                    text: "Conheça a equipe do DogSchool!",
+                    url: location.href
+                }).catch(() => {});
+            });
+        }
+    </script>
+</body>
+</html>
