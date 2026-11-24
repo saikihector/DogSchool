@@ -169,7 +169,8 @@ async function obterQuestaoAtual(req, res, next) {
 
             const progresso = await client.query(
                 `SELECT p.id_progresso, p.id_questao_sorteada, p.id_tema,
-                        p.iniciado_em, t.nome_tema, q.enunciado, q.imagem_url
+                        p.iniciado_em, p.cronometro_iniciado_em,
+                        t.nome_tema, q.enunciado, q.imagem_url
                  FROM progresso p
                  JOIN tema t ON t.id_tema = p.id_tema
                  JOIN questao q ON q.id_questao = p.id_questao_sorteada
@@ -231,6 +232,9 @@ async function obterQuestaoAtual(req, res, next) {
                 numeroQuestao: Number(respondidas.rows[0].total) + 1,
                 totalQuestoes: TOTAL_QUESTOES,
                 restanteSegundos: Number(tempo.rows[0].restante),
+                // Permite recuperar uma saída perdida sem penalizar outra questão.
+                idProgresso: Number(atual.id_progresso),
+                questaoAtiva: Boolean(atual.cronometro_iniciado_em),
                 questao: {
                     id: Number(atual.id_questao_sorteada),
                     tema: atual.nome_tema,
@@ -319,8 +323,17 @@ async function registrarResposta(req, res, next) {
         return res.status(400).json({ mensagem: 'Identificador de tentativa inválido.' });
     }
 
-    const idAlternativa = req.body?.idAlternativa;
-    if (idAlternativa !== null && idAlternativa !== undefined &&
+    // Toda resposta pertence a uma questão específica, não simplesmente à primeira
+    // pendente. Isso protege contra requisições atrasadas ao fechar a aba.
+    const idProgresso = lerIdPositivo(req.body?.idProgresso);
+    if (!idProgresso) {
+        return res.status(400).json({ mensagem: 'Identificador da questão inválido.' });
+    }
+    if (!req.body || !Object.prototype.hasOwnProperty.call(req.body, 'idAlternativa')) {
+        return res.status(400).json({ mensagem: 'Informe a alternativa ou null para questão sem resposta.' });
+    }
+    const idAlternativa = req.body.idAlternativa;
+    if (idAlternativa !== null &&
         (!Number.isSafeInteger(idAlternativa) || idAlternativa <= 0)) {
         return res.status(400).json({ mensagem: 'Alternativa inválida.' });
     }
@@ -341,6 +354,9 @@ async function registrarResposta(req, res, next) {
                 throw error;
             }
             if (tentativa.rows[0].status_tentativa !== 'em_andamento') {
+                // A confirmação anterior pode ter concluído a prova antes de um
+                // aviso de saída atrasado: nunca reabre nem altera a tentativa.
+                if (idAlternativa === null) return { ignorada: true, concluida: true };
                 const error = new Error('A tentativa já foi concluída.');
                 error.status = 409;
                 throw error;
@@ -361,12 +377,21 @@ async function registrarResposta(req, res, next) {
                 [idTentativa]
             );
             if (!pendente.rowCount) {
+                if (idAlternativa === null) return { ignorada: true };
                 const error = new Error('Não há questão pendente para responder.');
                 error.status = 409;
                 throw error;
             }
 
             const atual = pendente.rows[0];
+            if (Number(atual.id_progresso) !== idProgresso) {
+                // Um aviso de fechamento atrasado da questão anterior não pode
+                // errar a próxima questão (nem modificar um gabarito já confirmado).
+                if (idAlternativa === null) return { ignorada: true };
+                const error = new Error('Esta questão não está mais pendente. Atualize a avaliação.');
+                error.status = 409;
+                throw error;
+            }
             if (!atual.cronometro_iniciado_em) {
                 const error = new Error('Questão pausada. Retome a avaliação antes de responder.');
                 error.status = 409;
