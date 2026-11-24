@@ -304,19 +304,26 @@ function avancarAvaliacao() {
     conteudo.classList.remove('desfoque');
     carregarQuestao();
 }
-// Pausa o cronômetro no servidor quando o candidato fecha ou recarrega a página.
-function pausarPorSaida() {
+// Registra a questão atual como incorreta quando o candidato fecha ou recarrega a página.
+function encerrarComoIncorretaPorSaida() {
     if (encerrada || tentativaConcluida || processandoSaida || !/^\d+$/.test(idTentativa || '')) {
         return;
     }
+
     if (cronometro !== null) window.clearInterval(cronometro);
     cronometro = null;
-    window.apiRequest(`/assessments/attempts/${idTentativa}/pause`, {
+    encerrada = true;
+
+    // Enviar null significa que nenhuma alternativa foi escolhida: o servidor registra erro.
+    window.apiRequest(`/assessments/attempts/${idTentativa}/answers`, {
         method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idAlternativa: null }),
         keepalive: true,
-    }).catch((error) => console.error('Falha ao pausar a avaliação:', error));
+    }).catch((error) => console.error('Falha ao registrar a questão como incorreta:', error));
 }
-// Pausa o cronômetro antes de sair da tela de prova.
+
+// Registra a questão atual como incorreta antes de sair da tela de prova.
 async function sairEncerrandoQuestao(destino) {
     if (processandoSaida) return;
     processandoSaida = true;
@@ -327,27 +334,32 @@ async function sairEncerrandoQuestao(destino) {
         if (carregamentoPendente) await carregamentoPendente;
         if (!encerrada && !tentativaConcluida) {
             const { response, data } = await window.apiRequest(
-                `/assessments/attempts/${idTentativa}/pause`,
-                { method: 'POST' }
+                `/assessments/attempts/${idTentativa}/answers`,
+                {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ idAlternativa: null }),
+                }
             );
             if (!response.ok) {
-                throw new Error(data.mensagem || 'Não foi possível pausar a avaliação.');
+                throw new Error(data.mensagem || 'Não foi possível encerrar a questão como incorreta.');
             }
+            encerrada = true;
         }
     } catch (erro) {
-        console.error('Falha ao pausar a avaliação:', erro);
+        console.error('Falha ao encerrar a questão:', erro);
     } finally {
         window.location.replace(destino);
     }
 }
 // Intercepta fechamento de aba, atualização (F5) ou saída direta da página.
-window.addEventListener('pagehide', pausarPorSaida);
-// Intercepta o botão Voltar do navegador e pausa a avaliação antes de sair.
+window.addEventListener('pagehide', encerrarComoIncorretaPorSaida);
+// Intercepta o botão Voltar do navegador e encerra a questão como incorreta antes de sair.
 window.history.pushState({ dogsQuestao: true }, '', window.location.href);
 window.addEventListener('popstate', () => {
     sairEncerrandoQuestao('avaliacao.html');
 });
-// Botão "Ver progresso" / "Encerrar sessão" encerra a questão em aberto (se houver) antes de sair.
+// Botão "Ver progresso" / "Encerrar sessão" encerra a questão em aberto como incorreta antes de sair.
 function pausarAvaliacao() {
     sairEncerrandoQuestao('progresso.html');
 }
