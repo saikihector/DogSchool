@@ -16,43 +16,8 @@ window.addEventListener('scroll', () => {
 
 const botaoIniciar = document.getElementById('iniciar-avaliacao');
 const mensagemInicio = document.getElementById('mensagem-inicio');
-let pausaRegrasPendente = null;
-
-// Segunda camada de proteção: entrar ou voltar à página de regras pausa
-// a questão pendente no backend, mesmo que o evento Voltar da página da
-// questão não tenha conseguido concluir o POST /pause.
-// O endpoint GET /attempts só consulta; não cria tentativas novas.
-function garantirPausaNasRegras() {
-    if (pausaRegrasPendente) return pausaRegrasPendente;
-
-    const tarefa = (async () => {
-        const { response, data } = await window.apiRequest('/assessments/attempts');
-        if (!response.ok) {
-            throw new Error(data.mensagem || 'Não foi possível verificar sua avaliação.');
-        }
-
-        const tentativaAtiva = (data.tentativas || []).find(
-            (tentativa) => tentativa.status === 'em_andamento'
-        );
-        if (!tentativaAtiva) return;
-
-        const pausa = await window.apiRequest(
-            `/assessments/attempts/${tentativaAtiva.id}/pause`,
-            { method: 'POST' }
-        );
-        if (!pausa.response.ok) {
-            throw new Error(pausa.data.mensagem || 'Não foi possível pausar a avaliação.');
-        }
-    })();
-
-    pausaRegrasPendente = tarefa;
-    // Limpa o estado quando terminar, inclusive em caso de erro.
-    tarefa.then(
-        () => { if (pausaRegrasPendente === tarefa) pausaRegrasPendente = null; },
-        () => { if (pausaRegrasPendente === tarefa) pausaRegrasPendente = null; }
-    );
-    return tarefa;
-}
+// A página de regras não altera o cronômetro nem o resultado da tentativa.
+// A página de questão é responsável por registrar saídas e recuperar falhas.
 
 // Cria ou retoma uma tentativa autenticada antes de abrir a questão.
 async function iniciarAvaliacao() {
@@ -60,10 +25,6 @@ async function iniciarAvaliacao() {
     mensagemInicio.hidden = true;
 
     try {
-        // Evita corrida: uma pausa tardia da página de regras não pode
-        // chegar depois que a questão for retomada.
-        await garantirPausaNasRegras();
-
         const { response, data } = await window.apiRequest('/assessments/attempts', {
             method: 'POST',
         });
@@ -82,15 +43,8 @@ async function iniciarAvaliacao() {
 
 botaoIniciar.addEventListener('click', iniciarAvaliacao);
 
-// pageshow também roda quando o Firefox restaura a página do cache de
-// navegação (bfcache). A página só permite retomar após finalizar a pausa.
+// Ao restaurar as regras pelo cache, não emite /pause automaticamente.
 window.addEventListener('pageshow', () => {
     botaoIniciar.disabled = false;
     mensagemInicio.hidden = true;
-
-    garantirPausaNasRegras().catch((error) => {
-        console.error('Falha ao pausar ao entrar nas regras:', error);
-        mensagemInicio.textContent = error.message;
-        mensagemInicio.hidden = false;
-    });
 });
