@@ -10,15 +10,21 @@
     <script src="./src/js/guarda.js"></script>
 </head>
 <body>
-    <header class="cabecalho" id="header">
+    <header id="header">
         <div class="logo">
             <a href="index.html" class="title-primary">Dog</a><a href="index.html" class="title-secondary">School</a>
         </div>
 
+        <button class="hamburger" id="hamburger" aria-label="Abrir menu" aria-controls="nav" aria-expanded="false">
+            <span class="line"></span>
+            <span class="line"></span>
+            <span class="line"></span>
+        </button>
+
         <nav class="nav-bar" id="nav" aria-label="Menu principal">
             <ul>
-                <li><a href="index.html#hero-section">Início</a></li>
-                <li><a href="index.html#sobre-section">Sobre</a></li>
+                <li><a href="#hero-section">Início</a></li>
+                <li><a href="#sobre-section">Sobre</a></li>
                 <li><a href="estudos.html">Estudos</a></li>
                 <li><a href="avaliacao.html">Avaliação</a></li>
                 <li><a href="perfil.html">Perfil</a></li>
