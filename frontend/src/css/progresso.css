@@ -52,6 +52,23 @@ body {
     line-height: 1.5;
 }
 
+.logo {
+    position: relative;
+    font-size: 2.5rem;
+    font-weight: var(--bold);
+    padding: 0.3em clamp(0.5em, calc(16.4vw - 180px), 3em);
+}
+
+.title-primary {
+    color: var(--color-primary);
+}
+
+.title-secondary {
+    background: linear-gradient(to right, var(--color-text), var(--color-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
 /* ---------- Header transparente ---------- */
 header {
     position: fixed;          /* fica por cima do hero */
@@ -153,6 +170,30 @@ button.btnLogin-popup {
     cursor: pointer; 
 }
 
+/* ---------- Hambúrguer (escondido no desktop) ---------- */
+.hamburger {
+    display: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px;
+}
+
+.hamburger .line {
+    display: block;
+    width: 30px;
+    height: 3px;
+    background: var(--color-text);
+    border-radius: 3px;
+    transition: 0.3s;
+}
+
+.hamburger.open .line:nth-child(1) { transform: translateY(9px) rotate(45deg); }
+.hamburger.open .line:nth-child(2) { opacity: 0; }
+.hamburger.open .line:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+
 /* Os botões do conteúdo de Progresso mantêm o estilo original. */
 .botao {
     display: inline-flex;
@@ -177,6 +218,10 @@ button.btnLogin-popup {
 }
 
 @media (max-width: 1280px) {
+    /* Remover apenas a barra de rolagem horizontal */
+    body {
+        overflow-x: hidden;
+    }
     /* Header */
     header {
         max-width: 100%;
@@ -217,8 +262,7 @@ button.btnLogin-popup {
     }
 }
 
-/* O Progresso não usa o menu hambúrguer do Index;
-   em telas pequenas, as opções ficam numa segunda linha. */
+/* Tablets em pé e celulares: menu hambúrguer, igual ao Index */
 @media (max-width: 960px) {
     /* Header */
     header {
@@ -300,7 +344,8 @@ button.btnLogin-popup {
 .conteudo {
     width: min(100% - 32px, 1040px);
     margin: 0 auto;
-    padding: clamp(32px, 6vw, 68px) 0;
+    /* O header é fixo; o topo extra evita que ele cubra o título. */
+    padding: clamp(104px, 12vw, 132px) 0 clamp(32px, 6vw, 68px);
 }
 
 .intro {
