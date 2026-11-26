@@ -52,13 +52,9 @@ body {
     line-height: 1.5;
 }
 
-/* =========================================================
-   HEADER — MESMAS MEDIDAS E TIPOGRAFIA DO INDEX
-   Mantido no fluxo da página (sticky) para não encobrir
-   os cartões de progresso.
-   ========================================================= */
-.cabecalho {
-    position: sticky;
+/* ---------- Header transparente ---------- */
+header {
+    position: fixed;          /* fica por cima do hero */
     top: 0;
     left: 0;
     width: 100%;
@@ -66,118 +62,95 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    flex-wrap: nowrap;
-    gap: 0;
     padding: 0.6em 2em;
-    background: var(--color-background);
+    background: transparent;
     border-bottom: 0.2rem solid #EDE7FF;
-    line-height: normal;
     transition: background 0.4s, backdrop-filter 0.4s;
 }
 
-.cabecalho .logo {
-    position: relative;
-    font-size: 2.5rem;
-    font-weight: var(--bold);
-    padding: 0.3em clamp(0.5em, calc(16.4vw - 180px), 3em);
-    white-space: nowrap;
+/* ao rolar a página, o header ganha um fundo translúcido */
+header.scrolled {
+    background: var(--color-background);
+    backdrop-filter: blur(8px);
 }
 
-.cabecalho .title-primary {
-    color: var(--color-primary);
-}
-
-.cabecalho .title-secondary {
-    background: linear-gradient(to right, var(--color-text), var(--color-secondary));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-}
-
-.cabecalho .nav-bar {
+/* ---------- Menu ---------- */
+.nav-bar {
     display: flex;
     align-items: center;
     font-weight: var(--light);
 }
 
-.cabecalho .nav-bar ul {
+.nav-bar ul {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
-    align-items: center;
-    gap: 0;
-    margin: 0;
-    padding: 0;
-    list-style: none;
 }
 
-.cabecalho .nav-bar ul li a {
-    position: relative;
-    display: inline-block;
+.nav-bar ul li a {
+    position: relative;          /* sempre, não só no hover */
+    display: inline-block;       /* padding e bottom passam a funcionar direito */
     color: var(--color-text);
     font-weight: var(--bold);
     font-size: 1.3rem;
     padding: 10px 22px;
     border-radius: 50px;
     margin: 0 4px;
-    text-decoration: none;
     transition: var(--transition);
 }
 
-.cabecalho .nav-bar ul li a:hover {
-    color: var(--color-primary);
+.nav-bar ul li a:hover {
+    color: var(--color-primary); /* variável que existe */
 }
 
-.cabecalho .nav-bar ul li a::after {
+.nav-bar ul li a::after {
     content: '';
     position: absolute;
-    bottom: 2px;
-    left: 22px;
+    bottom: 2px;                 /* dentro da área do padding */
+    left: 22px;                  /* alinha com o início do texto */
     width: 0;
     height: 2px;
     background: var(--color-primary);
     transition: var(--transition);
 }
 
-.cabecalho .nav-bar ul li a:hover::after {
-    width: calc(100% - 44px);
+.nav-bar ul li a:hover::after {
+    width: calc(100% - 44px);    /* largura do texto (desconta o padding dos dois lados) */
 }
 
-.cabecalho .login-container {
-    padding: 0 clamp(1rem, calc(21.9vw - 240px), 10rem);
-    display: flex;
-    align-items: center;
-    gap: 0;
-}
-
-.cabecalho .usuario-nome {
-    color: var(--color-text);
-    font-size: 1.2rem;
-    margin-right: 12px;
-}
-
-.cabecalho .btnLogin-popup {
+.btnLogin-popup {
     display: inline-block;
     color: var(--color-secondary);
-    font-family: inherit;
     font-size: 1rem;
-    font-weight: var(--regular);
-    line-height: normal;
     padding: 12px 40px;
     border-radius: 25px;
     border: 2px solid var(--color-secondary);
-    background: transparent;
     white-space: nowrap;
-    text-decoration: none;
-    cursor: pointer;
     transition: 0.4s;
 }
 
-.cabecalho .btnLogin-popup:hover {
+.btnLogin-popup:hover {
     background: var(--color-secondary);
     color: var(--color-text);
-    border-color: var(--color-text);
-    box-shadow: none;
+    border: 2px solid var(--color-text);
+}
+
+.login-container { 
+    padding: 0 clamp(1rem, calc(21.9vw - 240px), 10rem);
+    display: flex; 
+    align-items: center; 
+
+}
+
+.usuario-nome { 
+    color: var(--color-text); 
+    font-size: 1.2rem; 
+    margin-right: 12px; 
+}
+
+button.btnLogin-popup { 
+    background: transparent; 
+    cursor: pointer; 
 }
 
 /* Os botões do conteúdo de Progresso mantêm o estilo original. */
@@ -204,96 +177,123 @@ body {
 }
 
 @media (max-width: 1280px) {
-    .cabecalho {
+    /* Header */
+    header {
+        max-width: 100%;
         padding: 1rem 0;
         border-bottom: 0.2rem solid var(--color-secondary);
     }
-
-    .cabecalho .logo {
+    .logo {
         font-size: 2.2rem;
         padding: 0.2rem 2rem;
     }
-
-    .cabecalho .nav-bar ul {
+    .nav-bar ul {
         flex-wrap: nowrap;
     }
-
-    .cabecalho .nav-bar ul li a {
+    .nav-bar ul li a {
         font-size: 1.2rem;
         padding: 0.5rem 0.8rem;
         margin: 0;
     }
-
-    .cabecalho .nav-bar ul li a::after {
+    .nav-bar ul li a::after {
         left: 0.8rem;
     }
-
-    .cabecalho .nav-bar ul li a:hover::after {
+    .nav-bar ul li a:hover::after {
         width: calc(100% - 1.6rem);
     }
-
-    .cabecalho .login-container {
+    /* Hero: botões um pouco menores para caberem lado a lado */
+    .hero-buttons {
+        gap: 1rem 1.2rem;
+    }
+    .btn-inscricao,
+    .btn-saiba {
+        font-size: 1.05rem;
+        padding: 1.05rem 2.2rem;
+    }
+    .login-container { 
         padding: 0 2rem;
+        display: flex; 
+        align-items: center;
     }
 }
 
 /* O Progresso não usa o menu hambúrguer do Index;
    em telas pequenas, as opções ficam numa segunda linha. */
 @media (max-width: 960px) {
-    .cabecalho {
-        flex-wrap: wrap;
+    /* Header */
+    header {
         padding: 0.8rem 1.5rem;
-        gap: 0.75rem;
     }
-
-    .cabecalho .logo {
+    .logo {
         font-size: 2rem;
         padding: 0;
     }
-
-    .cabecalho .login-container {
+    .hamburger {
+        display: flex;
+        order: 3;
+        margin-left: 0.6rem;
+    }
+    .login-container {
+        order: 2;
         margin-left: auto;
         padding: 0;
     }
 
-    .cabecalho .nav-bar {
-        order: 3;
+    .nav-bar {
+        position: absolute;
+        top: 100%;
+        left: 0;
         width: 100%;
-        justify-content: center;
+        background: var(--color-secondary);
+        max-height: 0;
+        border-bottom-left-radius: 28px;
+        border-bottom-right-radius: 28px;
+        overflow: hidden;
+        transition: max-height 0.4s;
     }
 
-    .cabecalho .nav-bar ul {
-        flex-wrap: wrap;
-        gap: 0.25rem;
+    .nav-bar.open { max-height: 320px; }
+
+    .nav-bar ul {
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        padding: 1rem 0;
     }
 
-    .cabecalho .nav-bar ul li a {
-        font-size: 1rem;
-        padding: 0.5rem 0.8rem;
+    .nav-bar ul li a {
+        color: var(--color-surface);
+        display: block;
+        margin: 4px 0;
+        padding: 0.5rem 1.2rem;
     }
+
+    .nav-bar ul li a::after { display: none; }
 }
 
 @media (max-width: 600px) {
-    .cabecalho {
+    /* Header */
+    header {
         padding: 0.7rem 1rem;
     }
-
-    .cabecalho .logo {
+    .logo {
         font-size: 1.7rem;
     }
-
-    .cabecalho .btnLogin-popup {
+    .btnLogin-popup {
         padding: 8px 18px;
         font-size: 0.9rem;
     }
-
-    .cabecalho .nav-bar ul li a {
-        font-size: 0.9rem;
-        padding: 0.4rem 0.6rem;
+    /* Hero */
+    .hero {
+        padding-top: 4.5rem;
     }
-
-    .cabecalho .nav-bar ul li a::after {
-        display: none;
+    .hero-buttons {
+        gap: 0.8rem;
+    }
+    .btn-inscricao,
+    .btn-saiba {
+        font-size: 1rem;
+        padding: 0.95rem 1.7rem;
     }
 }
 
